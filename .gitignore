@@ -1,1 +1,4 @@
 /venv
+/config.yaml
+__pycache__/
+/session_state.py
