@@ -1,8 +1,7 @@
 import pandas as pd
-import plotly.express as px
-import matplotlib.pyplot as plt
-import seaborn as sns
+import streamlit as st
 import os
+from prettytable import PrettyTable
 
 # Get the current working directory
 current_dir = os.getcwd()
@@ -13,80 +12,63 @@ dataset_path = os.path.join(current_dir, 'dataset', 'Churn Prediction Dataset.cs
 # Load the dataset
 df = pd.read_csv(dataset_path)
 
-# Create a display table showing basic information about the dataset
-styled_info_table = df.style.set_table_styles([
-    {'selector': 'th', 'props': [('color', 'white'), ('background-color', '#3498db')]},  # Blue headers
-    {'selector': 'td', 'props': [('background-color', '#ecf0f1')]}  # Light grey cells
-]).set_caption("Basic Information about the Dataset")
-styled_info_table
+# Display basic information about the dataset
+info_table = PrettyTable()
+info_table.field_names = ["Property", "Value"]
+info_table.add_row(["Number of Rows", len(df)])
+info_table.add_row(["Number of Columns", len(df.columns)])
+info_table.add_row(["Column Names", ", ".join(df.columns)])
+info_table.title = "Basic Information about the Dataset"
 
-# Create a display table showing summary statistics of numerical variables
-styled_summary_table = df.describe().style.set_table_styles([
-    {'selector': 'th', 'props': [('color', 'white'), ('background-color', '#27ae60')]},  # Green headers
-    {'selector': 'td', 'props': [('background-color', '#f1c40f')]}  # Yellow cells
-]).set_caption("Summary Statistics of Numerical Variables")
-styled_summary_table
+# Display summary statistics of numerical variables
+summary_table = df.describe().T
+summary_table = summary_table.reset_index()
+summary_table.rename(columns={'index': 'Variable'}, inplace=True)
+summary_table.title = "Summary Statistics of Numerical Variables"
 
-# Create a display table showing the first few rows of the dataset
-styled_head_table = df.head().style.set_table_styles([
-    {'selector': 'th', 'props': [('color', 'white'), ('background-color', '#e74c3c')]},  # Red headers
-    {'selector': 'td', 'props': [('background-color', '#95a5a6')]}  # Grey cells
-]).set_caption("First Few Rows of the Dataset")
-styled_head_table
+# Display the first few rows of the dataset
+head_table = df.head().to_string(index=False)
 
-# Check for missing values and create a display table
-missing_values_df = pd.DataFrame({'Column': df.columns, 'Missing Values': df.isnull().sum()})
-styled_missing_table = missing_values_df.style.set_table_styles([
-    {'selector': 'th', 'props': [('color', 'white'), ('background-color', '#8e44ad')]},  # Purple headers
-    {'selector': 'td', 'props': [('background-color', '#d7bde2')]}  # Lavender cells
-]).set_caption("Missing Values")
-styled_missing_table
+# Check for missing values
+missing_values_table = PrettyTable()
+missing_values_table.field_names = ["Column", "Missing Values"]
+missing_values_table.align = "l"
+for column in df.columns:
+    missing_values_table.add_row([column, df[column].isnull().sum()])
+missing_values_table.title = "Missing Values"
 
-# Check for duplicate rows and create a display table
+# Check for duplicate rows
 duplicate_count = df.duplicated().sum()
-styled_duplicate_table = pd.DataFrame({'Duplicate Rows': [duplicate_count]}).style.set_table_styles([
-    {'selector': 'th', 'props': [('color', 'white'), ('background-color', '#f39c12')]},  # Orange headers
-    {'selector': 'td', 'props': [('background-color', '#f9e79f')]}  # Light yellow cells
-]).set_caption("Duplicate Rows")
-styled_duplicate_table
+duplicate_table = PrettyTable()
+duplicate_table.field_names = ["Duplicate Rows"]
+duplicate_table.add_row([duplicate_count])
+duplicate_table.title = "Duplicate Rows"
 
 # Univariate Analysis
-
-# Visualize the distribution of the target variable using Plotly Express
-fig_churn_distribution = px.histogram(df, x='Churn', title='Distribution of Churn')
-fig_churn_distribution.update_traces(marker_color='#3498db')  # Blue color for bars
-fig_churn_distribution.update_layout(title_font_size=20)
-fig_churn_distribution.show()
+univariate_table = PrettyTable()
+univariate_table.field_names = ["Variable", "Churn Distribution"]
+univariate_table.add_row(["Churn", df['Churn'].value_counts()])
+univariate_table.title = "Univariate Analysis - Churn Distribution"
 
 # Bivariate Analysis
+bivariate_table = PrettyTable()
+bivariate_table.field_names = ["Variable", "Monthly Charges"]
+bivariate_table.add_row(["Churn", df.groupby('Churn')['MonthlyCharges'].mean()])
+bivariate_table.title = "Bivariate Analysis - Monthly Charges vs Churn"
 
-# Visualize the relationship between 'Churn' and 'MonthlyCharges' using Seaborn
-plt.figure(figsize=(10, 6))
-sns.boxplot(x='Churn', y='MonthlyCharges', data=df, palette='Set2')
-plt.title('Monthly Charges vs Churn', fontsize=20)
-plt.xlabel('Churn', fontsize=14)
-plt.ylabel('Monthly Charges', fontsize=14)
-plt.show()
-
-# Additional Analysis using pandas.styling
-
-# Create a styled table based on the entire dataset
-styled_filtered_table = (
-    df.style
-    .format({'MonthlyCharges': '${:,.2f}', 'TotalCharges': '${:,.2f}'})  # Currency formatting
-    .format({'Tenure': '{:,d}'})  # Integer formatting
-    .format({'ChurnRate': '{:.2%}'})  # Percentage formatting
-    .format({'CustomerID': '{:,.0f}'})  # Compact number formatting
-    .hide(subset=['Gender', 'SeniorCitizen'])  # Hide certain columns
-    .set_table_styles([
-        {'selector': 'th.row_heading', 'props': [('background-color', '#3498db'), ('color', 'white')]},  # Blue row headers
-        {'selector': 'th.col_heading', 'props': [('background-color', '#e74c3c'), ('color', 'white')]},  # Red column headers
-        {'selector': 'td', 'props': [('background-color', '#ecf0f1')]}  # Light grey cells
-    ])
-    .set_caption("Churn Prediction Dataset")
-    .set_properties(**{
-        'text-align': 'center',  # Center align all cells
-        'border': '1px solid black'  # Add a black border
-    })
-)
-styled_filtered_table
+# Display tables in Streamlit
+st.title("Data Analysis")
+st.header("Basic Information about the Dataset")
+st.text(info_table.get_string())
+st.header("Summary Statistics of Numerical Variables")
+st.text(summary_table.to_string(index=False))
+st.header("First Few Rows of the Dataset")
+st.text(head_table)
+st.header("Missing Values")
+st.text(missing_values_table.get_string())
+st.header("Duplicate Rows")
+st.text(duplicate_table.get_string())
+st.header("Univariate Analysis - Churn Distribution")
+st.text(univariate_table.get_string())
+st.header("Bivariate Analysis - Monthly Charges vs Churn")
+st.text(bivariate_table.get_string())

@@ -1,4 +1,5 @@
 import streamlit as st
+import json
 
 class History:
     def __init__(self):
@@ -7,41 +8,38 @@ class History:
     def add_entry(self, entry):
         self.history.append(entry)
 
+    def clear_history(self):
+        self.history = []
+
     def display_history(self):
-        st.header("History")
-        for i, entry in enumerate(self.history):
-            st.write(f"{i+1}. {entry}")
+        st.title("History")
+        if not self.history:
+            st.write("No history yet.")
+        else:
+            history_data = [{"Entry": f"{i+1}. {entry}"} for i, entry in enumerate(reversed(self.history))]
+            st.table(history_data)
+
+    def save_history_to_file(self, filename):
+        with open(filename, "w") as file:
+            json.dump(self.history, file)
+
+    def load_history_from_file(self, filename):
+        try:
+            with open(filename, "r") as file:
+                self.history = json.load(file)
+        except FileNotFoundError:
+            st.warning(f"History file '{filename}' not found.")
 
 # Create a shared instance of the History class
 history = History()
 
-# Home page
-if st.button("Home"):
-    history.add_entry("Visited Home page")
+# Log the page visits and actions
+def log_history(page, action):
+    history.add_entry(f"Visited page '{page}' and performed action: '{action}'")
 
-# Login page
-if st.button("Login"):
-    history.add_entry("Logged in")
+# Example usage:
+log_history("Home", "Clicked on 'Login' button")
+log_history("Data", "Filtered the dataset")
 
-# Upload dataset
-uploaded_file = st.file_uploader("Upload Dataset (CSV)", type=["csv"])
-if uploaded_file is not None:
-    history.add_entry("Dataset uploaded")
-
-# Prediction
-if st.button("Predict"):
-    # Perform prediction
-    prediction_result = predict_function()  # Call your prediction function
-    history.add_entry(f"Prediction: {prediction_result}")
-
-# View dashboards
-if st.button("Dashboards"):
-    history.add_entry("Viewed dashboards")
-
-# Display history
+# Display the history in the Streamlit app
 history.display_history()
-
-# Go back to previous points in history
-go_to_history = st.selectbox("Go to history entry", [i+1 for i in range(len(history.history))])
-if st.button("Go"):
-    st.experimental_rerun(go_to_history)
