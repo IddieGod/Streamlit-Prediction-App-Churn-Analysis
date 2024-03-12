@@ -70,6 +70,10 @@ The app will start running locally and can be accessed through a web browser.
 #### Supported Models
 1. Support Vector Machine (SVM)
 2. XGBoost
+3. Decision Tree Model
+4. Random Forest
+
+
 
 #### Description
 - SVM: Supervised machine learning algorithm used for classification tasks.
@@ -85,7 +89,7 @@ The app will start running locally and can be accessed through a web browser.
 - User Choice
 - Performance Comparison
 
-### Deployment <a name="deployment"></a>
+### Deployment 
 
 - Model Serialization
 - Model Loading
@@ -95,6 +99,11 @@ The app will start running locally and can be accessed through a web browser.
 - Model Tuning
 - Model Expansion
 - Model Monitoring
+
+### Deployment 
+
+-Performed app deployment with Render
+
 
 ### Contributing <a name="contributing"></a>
 
