@@ -103,6 +103,7 @@ The app will start running locally and can be accessed through a web browser.
 ### Deployment 
 
 -Performed app deployment with Render
+https://idg-churn-prediction-app.onrender.com
 
 
 ### Contributing <a name="contributing"></a>
